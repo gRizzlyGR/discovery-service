@@ -18,7 +18,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "express": "^4.17.1",
-    "lokijs": "^1.5.9"
+    "rxdb": "^9.4.0",
+    "rxjs": "^6.6.0"
   },
   "devDependencies": {
     "@types/chai-as-promised": "^7.1.2",
