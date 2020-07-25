@@ -1,38 +1,113 @@
+import loki from '@lokidb/loki';
 import express from 'express';
-import { initDb, applicationSchema, Application } from './models';
+import morgan from 'morgan';
+import { Application, ApplicationRequestBody } from './models';
+
 const app = express();
 
-const dbName = 'applicatioDb';
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }));
 
-app.put('/:group/:id', async (req, res) => {
-    const application: Application = req.body;
+const db = new loki('applicationDB')
 
-    const db = await initDb(dbName);
+const applications = db.addCollection<Application>('applications', {
+    clone: true // Cloning preserve original object, and don't pollute the client response with useless properties
+});
 
-    await db.collection({
-        name: 'applications',
-        schema: applicationSchema
-    })
+app.post('/:group/:id', async (req, res) => {
+    const body: ApplicationRequestBody = req.body;
 
-    await db.applications.insert(application);
+    // Create partial object to be used to query db and to be filled later upon returning
+    const target: Partial<Application> = {
+        id: req.params.id,
+        group: req.params.group
+    }
 
-    const pippo = await db.applications.findOne();
+    // Find by id and group
+    const found = applications.findOne(target)
 
-    console.log(JSON.stringify(pippo))
-    
-    res.send('PUT');
+    // If found, updates the found object properties to reflect the changes
+    if (found) {
+        // Update loki object fields
+        found.updatedAt = Date.now();
+
+        // If there are new metadata, replace the old ones
+        if (body.metadata) {
+            found.metadata = body.metadata;
+        }
+
+        // Set fields for object to return
+        target.createdAt = found.createdAt;
+        target.updatedAt = found.updatedAt;
+        target.metadata = found.metadata;
+
+        applications.update(found);
+    } else {
+        const now = Date.now();
+
+        target.createdAt = now;
+        target.updatedAt = now;
+        target.metadata = body.metadata;
+
+        // Safe to cast since now all fields are set
+        applications.insert(target as Application)
+    }
+
+    res.send(target);
 })
 
-app.delete('/:group/:id', (_, res) => {
-    res.send('DELETE');
+app.delete('/:group/:id', (req, res) => {
+    // Find by id and group
+    const found = applications.findOne({
+        id: req.params['id'],
+        group: req.params['group']
+    })
+
+    if (found) {
+        applications.remove(found)
+        res.sendStatus(200);
+    } else {
+        res.sendStatus(404);
+    }
 })
 
 app.get('/', (_, res) => {
-    res.send('GET');
+    // Find all docs
+    const docs = applications.find({})
+
+    const groupToDocs = new Map<string, Application[]>()
+    docs.forEach(doc => {
+        const groupedApplications = groupToDocs.get(doc.group) ?? [];
+        groupedApplications.push(doc);
+        groupToDocs.set(doc.group, groupedApplications);
+    })
+
+    Object.entries(groupToDocs).forEach(entry => {
+        console.log(JSON.stringify(entry))
+    })
+
+    res.send(docs)
 })
 
-app.get('/:group', (_, res) => {
-    res.send('GET group');
+app.get('/:group', (req, res) => {
+    const found = applications.find({
+        group: req.params.group
+    })
+
+    const applicationsByGroup: Application[] = found
+        .map(doc => {
+            return {
+                id: doc.id,
+                group: doc.group,
+                createdAt: doc.createdAt,
+                updatedAt: doc.updatedAt,
+                metadata: doc.metadata
+            }
+        })
+
+    res.send(applicationsByGroup);
 })
+
+app.use(morgan('tiny'))
 
 export { app };
