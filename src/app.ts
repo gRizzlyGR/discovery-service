@@ -1,18 +1,44 @@
 import loki from '@lokidb/loki';
 import express from 'express';
 import morgan from 'morgan';
-import { Application, ApplicationRequestBody } from './models';
+import { Application, ApplicationRequestBody, GroupSummary } from './models';
 
 const app = express();
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan('tiny'))
 
 const db = new loki('applicationDB')
 
 const applications = db.addCollection<Application>('applications', {
     clone: true // Cloning preserve original object, and don't pollute the client response with useless properties
 });
+
+app.get('/', (_, res) => {
+    // Find all docs
+    const docs = applications.find({})
+
+    const groupToApplications = new Map<string, Application[]>()
+
+    docs.forEach(doc => {
+        const groupedApplications = groupToApplications.get(doc.group) ?? [];
+        groupedApplications.push(doc);
+        groupToApplications.set(doc.group, groupedApplications);
+    })
+
+    const groupSummaries: GroupSummary[] = [];
+    for (const [group, applications] of groupToApplications) {
+        groupSummaries.push({
+            group: group,
+            instances: applications.length,
+            createdAt: Math.min(...applications.map(application => application.createdAt)),
+            lastUpdatedAt: Math.max(...applications.map(application => application.updatedAt))
+        })
+    }
+
+    res.send(groupSummaries);
+})
 
 app.post('/:group/:id', async (req, res) => {
     const body: ApplicationRequestBody = req.body;
@@ -71,23 +97,6 @@ app.delete('/:group/:id', (req, res) => {
     }
 })
 
-app.get('/', (_, res) => {
-    // Find all docs
-    const docs = applications.find({})
-
-    const groupToDocs = new Map<string, Application[]>()
-    docs.forEach(doc => {
-        const groupedApplications = groupToDocs.get(doc.group) ?? [];
-        groupedApplications.push(doc);
-        groupToDocs.set(doc.group, groupedApplications);
-    })
-
-    Object.entries(groupToDocs).forEach(entry => {
-        console.log(JSON.stringify(entry))
-    })
-
-    res.send(docs)
-})
 
 app.get('/:group', (req, res) => {
     const found = applications.find({
@@ -108,6 +117,5 @@ app.get('/:group', (req, res) => {
     res.send(applicationsByGroup);
 })
 
-app.use(morgan('tiny'))
 
 export { app };
