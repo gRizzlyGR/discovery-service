@@ -1,5 +1,5 @@
 import { Constants } from '../../src/constants';
-// Override db name to use a test one
+// Override db name so to use a test one. MUST BE SET BEFORE IMPORTING DAO
 Constants.dbName = 'test.db.json';
 
 import chai from 'chai';
@@ -10,10 +10,13 @@ import request from 'supertest';
 import { ApplicationDAO } from '../../src/dao';
 import { app } from '../../src/services';
 
-
 let server: Server;
 
 before(() => {
+    ApplicationDAO.getDB().addCollection('applications', {
+        clone: true
+    });
+
     const randomPort = Math.floor(Math.random() * (10000 - 5000) + 5000);
     server = app.listen(randomPort, () => {
         console.log(`Listening on port: ${randomPort}`);
@@ -27,14 +30,11 @@ after(() => {
 })
 
 beforeEach(() => {
-    ApplicationDAO.getDB().addCollection('applications', {
-        clone: true
-    });
+    ApplicationDAO.getApplicationsCollection().removeDataOnly();
     sinon.useFakeTimers(100);
 })
 
 afterEach(() => {
-    ApplicationDAO.getDB().removeCollection('applications');
     sinon.restore();
 })
 
@@ -52,7 +52,6 @@ describe('app.ts', () => {
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
                 .expect(res => {
-                    console.log(res.body)
                     return chai.expect(res.body)
                         .to.be.deep.equal(expected)
                 })
@@ -83,21 +82,37 @@ describe('app.ts', () => {
                 .expect(200)
         })
 
-        // it('should return 200 with new updatedAt', () => {
-        //     const expected = {
-        //         id: 'mock-id',
-        //         group: 'mock-group',
-        //         createdAt: 100,
-        //         updatedAt: 100,
-        //         metadata: {
-        //             mockField: 'mock-value'
-        //         }
-        //     }
+        it('should return 200 with new updatedAt', async () => {
+            const expected = {
+                id: 'mock-id',
+                group: 'mock-group',
+                createdAt: 100,
+                updatedAt: 200,
+                metadata: {
+                    mockField: 'mock-value'
+                }
+            }
 
-        //     request(server)
-        //         .post('/mock-group/mock-id')
-        //         .set('Content-Type', 'application/json')
-        // })
+            await request(server)
+                .post('/mock-group/mock-id')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            // Update timer, so next post will update only updatedAt and not
+            // createdAt
+            sinon.useFakeTimers(200);
+
+            return request(server)
+                .post('/mock-group/mock-id')
+                .set('Content-Type', 'application/json')
+                .send({ metadata: { mockField: 'mock-value' } })
+                .expect(res => {
+                    return chai.expect(res.body)
+                        .to.be.deep.equal(expected)
+                })
+                .expect('Content-Type', /json/)
+                .expect(200)
+        })
 
         it('should return 400 for malformed body', () => {
             return request(server)
@@ -109,8 +124,8 @@ describe('app.ts', () => {
     })
 
     describe('DELETE /:group/:id', () => {
-        it('should return 200 ok', () => {
-            request(server)
+        it('should return 200 ok', async () => {
+            await request(server)
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
                 .expect(200)
@@ -122,7 +137,7 @@ describe('app.ts', () => {
         })
 
 
-        it('should return 404 not found', () => {
+        it('should return 404 not found', async () => {
             return request(server)
                 .delete('/mock-group/mock-id')
                 .expect('Content-Type', /json/)
@@ -131,7 +146,62 @@ describe('app.ts', () => {
     })
 
     describe('GET /', () => {
-        it('should return an empty array', () => {
+        it('should reuturn an array of group summaries', async () => {
+            const expected = [
+                {
+                    group: 'mock-group-1',
+                    instances: 2,
+                    createdAt: 100,
+                    lastUpdatedAt: 200,
+                },
+                {
+                    group: 'mock-group-2',
+                    instances: 1,
+                    createdAt: 100,
+                    lastUpdatedAt: 200,
+                }
+            ]
+
+            await request(server)
+                .post('/mock-group-1/mock-id-1')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            await request(server)
+                .post('/mock-group-1/mock-id-2')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            await request(server)
+                .post('/mock-group-2/mock-id-2')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            // Update timer, so next post will update only updatedAt and not
+            // createdAt
+            sinon.useFakeTimers(200);
+
+            await request(server)
+                .post('/mock-group-1/mock-id-2')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            await request(server)
+                .post('/mock-group-2/mock-id-2')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+
+            return request(server)
+                .get('/')
+                .expect('Content-Type', /json/)
+                .expect((res) => {
+                    return chai.expect(res.body)
+                        .to.have.deep.members(expected)
+                })
+                .expect(200)
+        })
+
+        it('should return an empty array', async () => {
             return request(server)
                 .get('/')
                 .expect('Content-Type', /json/)
@@ -144,32 +214,18 @@ describe('app.ts', () => {
     })
 
     describe('GET /:group', () => {
-        it('should return an array per group', () => {
+        it('should return an array per group', async () => {
             const expected = [{
                 id: 'mock-id',
                 group: 'mock-group',
                 createdAt: 100,
                 updatedAt: 100
             }]
-            console.log('eeeeeeeeeeeeeeeee')
 
-            request(server)
+            await request(server)
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
                 .expect(200)
-
-            console.log('oooooooooooooooo')
-
-            request(server)
-                .get('/mock-group')
-                .expect('Content-Type', /json/)
-                .expect(res => {
-                    console.log('iiiiiiiiiiiiiiiii')
-                    console.log(JSON.stringify(res.body))
-                })
-                .expect(200)
-
-            console.log('pppppppppppppppppp')
 
             return request(server)
                 .get('/mock-group')

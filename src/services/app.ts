@@ -64,7 +64,7 @@ app.post('/:group/:id', async (req, res) => {
     }
 
     // Find by id and group
-    const found = applications.findOne(target)
+    const found = applications.findOne(target);
 
     // If found, updates the found object properties to reflect the changes
     if (found) {

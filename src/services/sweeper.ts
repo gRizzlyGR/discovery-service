@@ -27,6 +27,13 @@ const sweep = (expiryTTL: number) => {
     console.log('Cleansing expired applications...');
     const applications = ApplicationDAO.getApplicationsCollection();
 
+    // Example:
+    // updatedAt = 100
+    // Date.now() = 200
+    // TTL = 50
+    // 200 - 50 = 150 > 100 => expired
+    // TTL = 150
+    // 200 - 150 = 50 < 100 => not expired
     applications.removeWhere({
         updatedAt: {
             $lte: Date.now() - expiryTTL
