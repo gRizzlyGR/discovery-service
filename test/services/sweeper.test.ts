@@ -30,18 +30,19 @@ afterEach(() => {
 
 describe('sweeper.ts', () => {
     describe('startSweeping', () => {
-        const applications = ApplicationDAO.getApplicationsCollection();
-       
+        
         it('should delete an expired application', () => {
+            const applications = ApplicationDAO.getApplicationsCollection();
+            
             const soonToExpire = {
                 id: 'mock-id',
                 group: 'mock-group',
                 createdAt: 100,
                 updatedAt: 100
             }
-
+            
             applications.insert(soonToExpire);
-
+            
             // Date.now() is now 200
             sinon.useFakeTimers(200);
 
@@ -53,6 +54,8 @@ describe('sweeper.ts', () => {
         })
 
         it('should delete no application', () => {
+            const applications = ApplicationDAO.getApplicationsCollection();
+
             const notExpiring = {
                 id: 'mock-id',
                 group: 'mock-group',
