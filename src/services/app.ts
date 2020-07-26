@@ -1,9 +1,9 @@
+import Ajv from 'ajv';
 import express from 'express';
 import morgan from 'morgan';
-import dao from './dao';
-import { Application, ApplicationRequestBody, GroupSummary } from './models';
-import Ajv from 'ajv';
-import { RequestBodySchema } from './schemas';
+import { ApplicationDAO } from '../dao';
+import { Application, ApplicationRequestBody, GroupSummary } from '../models';
+import { RequestBodySchema } from '../schemas';
 
 const app = express();
 
@@ -12,7 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'))
 
 app.get('/', (_, res) => {
-    const applications = dao.getApplicationsCollection();
+    
+    const applications = ApplicationDAO.getApplicationsCollection();
 
     // Find all docs
     const docs = applications.find({})
@@ -44,7 +45,7 @@ app.get('/', (_, res) => {
 })
 
 app.post('/:group/:id', async (req, res) => {
-    const applications = dao.getApplicationsCollection();
+    const applications = ApplicationDAO.getApplicationsCollection();
 
     const body: ApplicationRequestBody = req.body;
 
@@ -96,7 +97,7 @@ app.post('/:group/:id', async (req, res) => {
 })
 
 app.delete('/:group/:id', (req, res) => {
-    const applications = dao.getApplicationsCollection();
+    const applications = ApplicationDAO.getApplicationsCollection();
 
     // Find by id and group
     const found = applications.findOne({
@@ -113,7 +114,7 @@ app.delete('/:group/:id', (req, res) => {
 })
 
 app.get('/:group', (req, res) => {
-    const applications = dao.getApplicationsCollection();
+    const applications = ApplicationDAO.getApplicationsCollection();
 
     const found = applications.find({
         group: req.params.group

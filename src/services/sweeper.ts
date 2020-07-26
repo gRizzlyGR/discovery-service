@@ -1,4 +1,4 @@
-import dao from './dao';
+import { ApplicationDAO } from '../dao';
 
 /**
  * Start sweeping, checking for expired applications right away, and then on
@@ -9,7 +9,7 @@ import dao from './dao';
 const startSweeping = (expiryTTL: number, interval: number) => {
     console.log(`Expiry time is ${expiryTTL / 1000} seconds.`);
     console.log(`Expired applications will be removed every ${interval / 1000} seconds.`);
-    
+
     // Call it first time for no delay
     sweep(expiryTTL);
 
@@ -25,7 +25,7 @@ const startSweeping = (expiryTTL: number, interval: number) => {
  */
 const sweep = (expiryTTL: number) => {
     console.log('Cleansing expired applications...');
-    const applications = dao.getApplicationsCollection();
+    const applications = ApplicationDAO.getApplicationsCollection();
 
     applications.removeWhere({
         updatedAt: {
@@ -34,6 +34,6 @@ const sweep = (expiryTTL: number) => {
     })
 }
 
-export default {
+export {
     startSweeping
 }

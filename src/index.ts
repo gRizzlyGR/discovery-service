@@ -1,6 +1,5 @@
-import { app } from './app';
+import { app, startSweeping } from './services';
 import { Constants } from './constants';
-import sweeper from './sweeper';
 import { parseNumber } from './utils';
 
 const port = parseNumber(process.env.DISCOVERY_PORT, Constants.discoveryPort)
@@ -11,4 +10,4 @@ app.listen(port, () => {
     console.log(`Listening on port: ${port}`);
 })
 
-sweeper.startSweeping(expiryTTL, interval);
+startSweeping(expiryTTL, interval);

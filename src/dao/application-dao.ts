@@ -1,12 +1,12 @@
 import loki from 'lokijs';
-import { Application } from './models';
-import { Constants } from './constants';
+import { Application } from '../models';
+import { Constants } from '../constants';
 
 const fsAdapter = new loki.LokiFsAdapter();
 
 let applications: Collection<Application>;
 
-const db = new loki(process.env.DBNAME ?? Constants.dbName, {
+const db = new loki(Constants.dbName, {
     autosave: true,
     autoload: true,
     adapter: fsAdapter,
@@ -30,9 +30,9 @@ function initApplicationsCollection() {
  * Return applications collection object
  */
 function getApplicationsCollection(): Collection<Application> {
-    // if (!applications) {
-    //     initApplicationsCollection();
-    // }
+    if (!applications) {
+        initApplicationsCollection();
+    }
 
     return applications;
 }
@@ -41,7 +41,7 @@ function getDB(): loki {
     return db;
 }
 
-export default {
+export {
     getApplicationsCollection,
     getDB
 }
