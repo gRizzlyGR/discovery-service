@@ -31,9 +31,9 @@ const sweep = (expiryTTL: number) => {
     // updatedAt = 100
     // Date.now() = 200
     // TTL = 50
-    // 200 - 50 = 150 > 100 => expired
+    // 100 < 200 - 50 => expired
     // TTL = 150
-    // 200 - 150 = 50 < 100 => not expired
+    // 100 > 200 - 150 => not expired
     applications.removeWhere({
         updatedAt: {
             $lte: Date.now() - expiryTTL
