@@ -123,7 +123,7 @@ describe('app.ts', () => {
 
 
         it('should return 404 not found', () => {
-            return girequest(server)
+            return request(server)
                 .delete('/mock-group/mock-id')
                 .expect('Content-Type', /json/)
                 .expect(404)
