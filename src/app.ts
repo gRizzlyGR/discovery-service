@@ -1,6 +1,6 @@
-import loki from '@lokidb/loki';
 import express from 'express';
 import morgan from 'morgan';
+import dao from './dao';
 import { Application, ApplicationRequestBody, GroupSummary } from './models';
 
 const app = express();
@@ -9,11 +9,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'))
 
-const db = new loki('applicationDB')
-
-const applications = db.addCollection<Application>('applications', {
-    clone: true // Cloning preserve original object, and don't pollute the client response with useless properties
-});
+const applications = dao.getApplicationsCollection();
 
 app.get('/', (_, res) => {
     // Find all docs
