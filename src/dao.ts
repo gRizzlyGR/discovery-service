@@ -1,25 +1,29 @@
-import { FSStorage } from '@lokidb/fs-storage';
-import loki, { Collection } from '@lokidb/loki';
+import loki from 'lokijs';
 import { Application } from './models';
+import { Constants } from './constants';
 
-const db = new loki('application.db.json');
-const fsAdapter = new FSStorage();
+const fsAdapter = new loki.LokiFsAdapter();
 
-export function getApplicationsCollection(): Collection<Application> {
-    db.initializePersistence({
-        autosave: true,
-        adapter: fsAdapter
-    })
+let applications: Collection<Application>;
 
-    let applications = db.getCollection<Application>('applications');
+const db = new loki(Constants.dbName, {
+    autosave: true,
+    autoload: true,
+    adapter: fsAdapter,
+    autoloadCallback: initApplicationsCollection,
+});
+
+function initApplicationsCollection() {
+    applications = db.getCollection<Application>(Constants.collectionName);
 
     if (!applications) {
-        console.log('Collection not found, it will be created');
-        applications = db.addCollection<Application>('applications', {
+        applications = db.addCollection<Application>(Constants.collectionName, {
             clone: true // Cloning preserve original object, and don't pollute the client response with useless properties
-        });
+        })
     }
+}
 
+function getApplicationsCollection(): Collection<Application> {
     return applications;
 }
 

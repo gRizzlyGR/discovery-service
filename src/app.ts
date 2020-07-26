@@ -9,12 +9,13 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'))
 
-const applications = dao.getApplicationsCollection();
-
 app.get('/', (_, res) => {
+    const applications = dao.getApplicationsCollection();
+
     // Find all docs
     const docs = applications.find({})
-
+    
+    // Map each group to its bundle of applications
     const groupToApplications = new Map<string, Application[]>()
 
     docs.forEach(doc => {
@@ -23,10 +24,14 @@ app.get('/', (_, res) => {
         groupToApplications.set(doc.group, groupedApplications);
     })
 
+    // Create summaries for each group:
+    // - How many applications belong to it
+    // - Creation timestamp of the first registered application
+    // - Most recent update timestamp of one of the application 
     const groupSummaries: GroupSummary[] = [];
     for (const [group, applications] of groupToApplications) {
         groupSummaries.push({
-            group: group,
+            group,
             instances: applications.length,
             createdAt: Math.min(...applications.map(application => application.createdAt)),
             lastUpdatedAt: Math.max(...applications.map(application => application.updatedAt))
@@ -37,6 +42,8 @@ app.get('/', (_, res) => {
 })
 
 app.post('/:group/:id', async (req, res) => {
+    const applications = dao.getApplicationsCollection();
+
     const body: ApplicationRequestBody = req.body;
 
     // Create partial object to be used to query db and to be filled later upon returning
@@ -79,6 +86,8 @@ app.post('/:group/:id', async (req, res) => {
 })
 
 app.delete('/:group/:id', (req, res) => {
+    const applications = dao.getApplicationsCollection();
+
     // Find by id and group
     const found = applications.findOne({
         id: req.params['id'],
@@ -93,8 +102,9 @@ app.delete('/:group/:id', (req, res) => {
     }
 })
 
-
 app.get('/:group', (req, res) => {
+    const applications = dao.getApplicationsCollection();
+
     const found = applications.find({
         group: req.params.group
     })
