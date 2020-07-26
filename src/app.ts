@@ -2,6 +2,8 @@ import express from 'express';
 import morgan from 'morgan';
 import dao from './dao';
 import { Application, ApplicationRequestBody, GroupSummary } from './models';
+import Ajv from 'ajv';
+import { RequestBodySchema } from './schemas';
 
 const app = express();
 
@@ -14,7 +16,7 @@ app.get('/', (_, res) => {
 
     // Find all docs
     const docs = applications.find({})
-    
+
     // Map each group to its bundle of applications
     const groupToApplications = new Map<string, Application[]>()
 
@@ -45,6 +47,14 @@ app.post('/:group/:id', async (req, res) => {
     const applications = dao.getApplicationsCollection();
 
     const body: ApplicationRequestBody = req.body;
+
+    const ajv = new Ajv();
+    const valid = ajv.validate(RequestBodySchema, body);
+
+    if (!valid) {
+        res.status(400).json({ error: ajv.errorsText(ajv.errors) })
+        return;
+    }
 
     // Create partial object to be used to query db and to be filled later upon returning
     const target: Partial<Application> = {
@@ -82,7 +92,7 @@ app.post('/:group/:id', async (req, res) => {
         applications.insert(target as Application)
     }
 
-    res.send(target);
+    res.json(target);
 })
 
 app.delete('/:group/:id', (req, res) => {
@@ -96,9 +106,9 @@ app.delete('/:group/:id', (req, res) => {
 
     if (found) {
         applications.remove(found)
-        res.sendStatus(200);
+        res.status(200).json();
     } else {
-        res.sendStatus(404);
+        res.status(404).json({ message: 'Not Found' });
     }
 })
 
@@ -120,7 +130,7 @@ app.get('/:group', (req, res) => {
             }
         })
 
-    res.send(applicationsByGroup);
+    res.json(applicationsByGroup);
 })
 
 

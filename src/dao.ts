@@ -6,13 +6,16 @@ const fsAdapter = new loki.LokiFsAdapter();
 
 let applications: Collection<Application>;
 
-const db = new loki(Constants.dbName, {
+const db = new loki(process.env.DBNAME ?? Constants.dbName, {
     autosave: true,
     autoload: true,
     adapter: fsAdapter,
     autoloadCallback: initApplicationsCollection,
 });
 
+/**
+ * Callback for init db and collection
+ */
 function initApplicationsCollection() {
     applications = db.getCollection<Application>(Constants.collectionName);
 
@@ -23,10 +26,22 @@ function initApplicationsCollection() {
     }
 }
 
+/**
+ * Return applications collection object
+ */
 function getApplicationsCollection(): Collection<Application> {
+    // if (!applications) {
+    //     initApplicationsCollection();
+    // }
+
     return applications;
 }
 
+function getDB(): loki {
+    return db;
+}
+
 export default {
-    getApplicationsCollection
+    getApplicationsCollection,
+    getDB
 }

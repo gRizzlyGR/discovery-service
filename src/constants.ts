@@ -1,6 +1,7 @@
 export const Constants = {
     dbName: 'application.db.json',
     collectionName: 'applications',
-    applicationTTLinMilliseconds: 30000,
-    sweepingScheduleTimeInMilliseconds: 10000,
+    discoveryPort: 5000,
+    applicationTTLinMilliseconds: 60000,
+    sweepingIntervalTimeInMilliseconds: 30000,
 }
