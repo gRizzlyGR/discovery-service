@@ -49,6 +49,7 @@ app.post('/:group/:id', async (req, res) => {
 
     const body: ApplicationRequestBody = req.body;
 
+    // Validate request body against json schema
     const ajv = new Ajv();
     const valid = ajv.validate(RequestBodySchema, body);
 
