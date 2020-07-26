@@ -67,6 +67,8 @@ app.post('/:group/:id', async (req, res) => {
     // Find by id and group
     const found = applications.findOne(target);
 
+    let status: number;
+
     // If found, updates the found object properties to reflect the changes
     if (found) {
         // Update loki object fields
@@ -83,6 +85,9 @@ app.post('/:group/:id', async (req, res) => {
         target.metadata = found.metadata;
 
         applications.update(found);
+
+        // Ok
+        status = 200;
     } else {
         const now = Date.now();
 
@@ -92,9 +97,12 @@ app.post('/:group/:id', async (req, res) => {
 
         // Safe to cast since now all fields are set
         applications.insert(target as Application)
+
+        // Created
+        status = 201;
     }
 
-    res.json(target);
+    res.status(status).json(target);
 })
 
 app.delete('/:group/:id', (req, res) => {

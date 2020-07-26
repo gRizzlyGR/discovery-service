@@ -40,7 +40,7 @@ afterEach(() => {
 
 describe('app.ts', () => {
     describe('POST /:group/:id', () => {
-        it('should return 200 with an expected body', () => {
+        it('should return 201 with an expected body', () => {
             const expected = {
                 id: 'mock-id',
                 group: 'mock-group',
@@ -56,10 +56,10 @@ describe('app.ts', () => {
                         .to.be.deep.equal(expected)
                 })
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(201)
         })
 
-        it('should return 200 with metadata field', () => {
+        it('should return 201 with metadata field', () => {
             const expected = {
                 id: 'mock-id',
                 group: 'mock-group',
@@ -79,7 +79,7 @@ describe('app.ts', () => {
                         .to.be.deep.equal(expected)
                 })
                 .expect('Content-Type', /json/)
-                .expect(200)
+                .expect(201)
         })
 
         it('should return 200 with new updatedAt', async () => {
@@ -96,7 +96,7 @@ describe('app.ts', () => {
             await request(server)
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             // Update timer, so next post will update only updatedAt and not
             // createdAt
@@ -128,7 +128,7 @@ describe('app.ts', () => {
             await request(server)
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             return request(server)
                 .delete('/mock-group/mock-id')
@@ -165,17 +165,17 @@ describe('app.ts', () => {
             await request(server)
                 .post('/mock-group-1/mock-id-1')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             await request(server)
                 .post('/mock-group-1/mock-id-2')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             await request(server)
                 .post('/mock-group-2/mock-id-2')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             // Update timer, so next post will update only updatedAt and not
             // createdAt
@@ -225,7 +225,7 @@ describe('app.ts', () => {
             await request(server)
                 .post('/mock-group/mock-id')
                 .set('Content-Type', 'application/json')
-                .expect(200)
+                .expect(201)
 
             return request(server)
                 .get('/mock-group')
