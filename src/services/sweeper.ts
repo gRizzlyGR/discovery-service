@@ -35,9 +35,9 @@ const sweep = (expiryTTL: number) => {
     // TTL = 150
     // 100 > 200 - 150 => not expired
 
-    // Using a callback function, we can log the expired application
+    // Using a callback function, we can log the expired application info
     applications.removeWhere((application): boolean => {
-        if (application.updatedAt < Date.now() - expiryTTL) {
+        if (application.updatedAt <= Date.now() - expiryTTL) {
             console.log(`Removing expired application -> group: '${application.group}' - id: '${application.id}'`);
             return true;
         }

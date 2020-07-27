@@ -12,7 +12,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'))
 
 app.get('/', (_, res) => {
-    
+
     const applications = ApplicationDAO.getApplicationsCollection();
 
     // Find all docs
@@ -108,15 +108,18 @@ app.post('/:group/:id', async (req, res) => {
 app.delete('/:group/:id', (req, res) => {
     const applications = ApplicationDAO.getApplicationsCollection();
 
+    const id = req.params.id;
+    const group = req.params.group;
+
     // Find by id and group
     const found = applications.findOne({
-        id: req.params['id'],
-        group: req.params['group']
+        id,
+        group
     })
 
     if (found) {
         applications.remove(found)
-        res.status(200).json();
+        res.status(200).json({ message: `Application ${JSON.stringify({ id, group })} successfully deleted` });
     } else {
         res.status(404).json({ message: 'Not Found' });
     }
