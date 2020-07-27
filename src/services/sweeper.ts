@@ -24,7 +24,7 @@ const startSweeping = (expiryTTL: number, interval: number) => {
  * @param expiryTTL 
  */
 const sweep = (expiryTTL: number) => {
-    console.log('Cleansing expired applications...');
+    console.log('Searching expired applications...');
     const applications = ApplicationDAO.getApplicationsCollection();
 
     // Example:
@@ -34,11 +34,23 @@ const sweep = (expiryTTL: number) => {
     // 100 < 200 - 50 => expired
     // TTL = 150
     // 100 > 200 - 150 => not expired
-    applications.removeWhere({
-        updatedAt: {
-            $lte: Date.now() - expiryTTL
+
+    // Using a callback function, we can log the expired application
+    applications.removeWhere((application): boolean => {
+        if (application.updatedAt < Date.now() - expiryTTL) {
+            console.log(`Removing expired application -> group: '${application.group}' - id: '${application.id}'`);
+            return true;
         }
+
+        return false;
     })
+
+    // This snippet uses a mongo-style approach, but unfortunately cannot log
+    // applications.removeWhere({
+    //     updatedAt: {
+    //         $lte: Date.now() - expiryTTL
+    //     }
+    // })
 }
 
 export {
