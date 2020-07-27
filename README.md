@@ -1,4 +1,4 @@
-# Table of Content
+# Table of Contents
 
 1. [Discovery Service](#discovery-service)
 2. [Description](#description)
