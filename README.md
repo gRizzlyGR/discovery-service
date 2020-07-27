@@ -1,4 +1,5 @@
 # Table of Content
+
 1. [Discovery Service](#discovery-service)
 2. [Description](#description)
 3. [Specs](#specs)
@@ -9,8 +10,8 @@
 8. [Sweeper](#sweeper)
 9. [Notes](#notes)
 
-
 # Discovery Service
+
 Discovery service written in Typescript for keeping track of registered applications and to remove them once they're expired (no heartbeat in a certain time frame).
 
 # Description
@@ -66,6 +67,7 @@ To init the environment and install all dependencies, enter
 npm install
 ```
 
+##
 To start the program (with building etc.) enter
 
 ``` 
@@ -78,10 +80,10 @@ To change these values, you need to set some environment variables, that is:
  - `DISCOVERY_PORT` to set the listening port
  - `EXPIRY_TTL` to set the application TTL
  - `SWEEP_INTERVAL` to set the time frame in which the sweeper searches and removes expired applications
- ##
+ 
  For time-related environment variables, values should be set in milliseconds.
  To see the changes you have to restart the application. Rememeber that variables are unset once you close the terminal in which you have set them before. 
-
+##
 To run unit tests and generating the coverage, enter
 
 ``` 
@@ -96,7 +98,7 @@ The web service runs on by default on `localhost:8080` if no port is set with `D
 
 Examples here use [curl](https://curl.haxx.se/).
 
-# Register and update application
+## Register and update an application
 
 ``` 
 curl -v -X POST -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd
@@ -207,19 +209,24 @@ Response:
     }
 }]
 ```
-# Sweeper
+
+# Remove expired applications
+
 The `sweeper` component runs in background, searching and deleting expired applications.
 
-Logic is based on `updatedAt` field, that is if an application has not sent an heartbeat in a certain time frame (i.e. has not POSTed in a long time).
+Logic is based on `updatedAt` field, that is if an application has sent no heartbeat in a certain time frame (i.e. has not POSTed in a long time).
 
 If `updatedAt` is equal or inferior to the difference between the current time in milliseconds and the set expiry time, application is removed from the db.
 
-For instance, if the application sent its last known heartbeat on the 1st January 1970 at 12.00 and its expiry time is 1 minute, if the sweeper wakes up at 12.02, it will remove the application (Sweeper is not always active, but it acts on a set interval constantly)
+For instance, if the application sent its last known heartbeat on the 1st January 1970 at 12.00 and its expiry time is 1 minute, if the sweeper wakes up at 12.02, it will remove the application (sweeper is not always active, but it acts on a set interval constantly).
 
-- 1 January 1970 12:00:00 => 43200000
-- 1 minute => 60000
-- 1 January 1970 12:02:00 => 43320000
-- 43200000 < 43320000 - 60000
+* 1 January 1970 12:00:00 => 43200000
+* 1 minute => 60000
+* 1 January 1970 12:02:00 => 43320000
+* 43200000 < 43320000 - 60000
+
+If you want to change time frames, remember to set `EXPIRY_TTL` and `SWEEP_INTERVAL` environment variables to change, respectively, applications' TTL and sweeper activation time. For further info, check the [installation](#installation) section.
 
 # Notes
+
 For more insight on this application, check its logs once run.
