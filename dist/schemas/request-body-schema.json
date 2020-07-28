@@ -1,0 +1,11 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "RequestBodySchema",
+    "type": "object",
+    "properties": {
+        "metadata": {
+            "type": "object"
+        }
+    },
+    "additionalProperties": false
+}
