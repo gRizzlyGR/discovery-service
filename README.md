@@ -225,6 +225,12 @@ For instance, if the application sent its last known heartbeat on the 1st Januar
 * 1 January 1970 12:02:00 => 43320000
 * 43200000 < 43320000 - 60000
 
+Application removed info will appear in the program logs, like:
+```
+Searching expired applications...
+Removing expired application -> group: 'particle-detector' - id: 'ca68fb7c-a0f5-4da5-9602-40976962c072'
+```
+
 If you want to change time frames, remember to set `EXPIRY_TTL` and `SWEEP_INTERVAL` environment variables to change, respectively, applications' TTL and sweeper activation time. For further info, check the [installation](#installation) section.
 
 # Notes
