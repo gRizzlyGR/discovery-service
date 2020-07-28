@@ -96,7 +96,7 @@ Coverage is available at the generated `./coverage/lcov-report/index.html` (Open
 
 The web service runs on by default on `localhost:8080` if no port is set with `DISCOVERY_PORT` . If you have any other service bound on that port, please close it, otherwise the service won't run.
 
-Examples here use [curl](https://curl.haxx.se/).
+Examples below use [curl](https://curl.haxx.se/).
 
 ## Register and update an application
 
@@ -104,7 +104,9 @@ Examples here use [curl](https://curl.haxx.se/).
 curl -v -X POST -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd
 ```
 
-Response:
+### Responses
+
+*  201 Created:
 
 ``` js
 {
@@ -121,7 +123,7 @@ With metadata attached:
 curl -v -X POST -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd -d "{\"metadata\":{\"foo\":1}}"
 ```
 
-Response:
+* 200 OK
 
 ``` js
 {
@@ -135,17 +137,49 @@ Response:
 }
 ```
 
+* 400 Bad Request
+
+``` 
+curl -v -X POST -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd -d "{\"shouldNotBePresent\":{\"foo\":1}}
+```
+
+``` js
+{
+    "error": "data should NOT have additional properties"
+}
+```
+
+``` 
+curl -v -X POST -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd -d "{\"metadata\": \"cannot be a string\"}
+```
+
+``` js
+{
+    "error": "data.metadata should be object"
+}
+```
+
 ## Unregister an application
 
 ``` 
 curl -v -X DELETE -H "Content-Type: application/json" http://localhost:8080/particle-detector/e335175a-eace-4a74-b99c-c6466b6afadd
 ```
 
-Response:
+### Responses
+
+* 200 OK
 
 ``` js
 {
     "message": "Application {\"id\":\"e335175a-eace-4a74-b99c-c6466b6afadd\",\"group\":\"particle-detector\"} successfully deleted"
+}
+```
+
+* 404 Not Found
+
+``` js
+{
+    "message": "Not Found"
 }
 ```
 
@@ -159,7 +193,9 @@ Then enter:
 curl -v -H "Content-Type: application/json" http://localhost:8080/
 ```
 
-Response:
+### Responses
+
+* 200 OK
 
 ``` js
 [{
@@ -180,13 +216,17 @@ Response:
 }]
 ```
 
+In case of group(s) not found, an empty list is returned: [].
+
 ## List of group-related applications
 
 ``` 
 curl -v -H "Content-Type: application/json" http://localhost:8080/particle-detector
 ```
 
-Response:
+### Responses
+
+* 200 OK
 
 ``` js
 [{
@@ -210,6 +250,8 @@ Response:
 }]
 ```
 
+In case of group not found, an empty list is returned: [].
+
 # Remove expired applications
 
 The `sweeper` component runs in background, searching and deleting expired applications.
@@ -226,7 +268,8 @@ For instance, if the application sent its last known heartbeat on the 1st Januar
 * 43200000 < 43320000 - 60000
 
 Application removed info will appear in the program logs, like:
-```
+
+``` 
 Searching expired applications...
 Removing expired application -> group: 'particle-detector' - id: 'ca68fb7c-a0f5-4da5-9602-40976962c072'
 ```
