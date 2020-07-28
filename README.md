@@ -6,7 +6,7 @@
 4. [Storage](#storage)
 5. [Deviations](#deviations)
 6. [Installation](#installation)
-7. [API commands example](#api-commands-example)
+7. [API commands examples](#api-commands-examples)
 8. [Sweeper](#sweeper)
 9. [Notes](#notes)
 
@@ -92,7 +92,7 @@ npm test
 
 Coverage is available at the generated `./coverage/lcov-report/index.html` (Open with a browser)
 
-# API commands example
+# API commands examples
 
 The web service runs on by default on `localhost:8080` if no port is set with `DISCOVERY_PORT` . If you have any other service bound on that port, please close it, otherwise the service won't run.
 
